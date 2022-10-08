@@ -1,14 +1,18 @@
 // require in the database adapter functions as you write them (createUser, createActivity...)
+const { createUser,  createActivity, getAllActivities,  createRoutine, getRoutinesWithoutActivities, addActivityToRoutine } = require('./');
+
 // const { } = require('./');
-const client = require("./client")
+const client = require("./client");
 
 async function dropTables() {
   try{
-    console.log("Dropping All Tables...");
-
-    await client.query(`
-    DROP TABLES IF EXISTS mytablename`);
-    
+    console.log("dropping tables...");
+    await  client.query(`
+    DROP TABLE IF EXISTS routine_activities;
+    DROP TABLE IF EXISTS routines;
+    DROP TABLE IF EXISTS activities;
+    DROP TABLE IF EXISTS users;
+  `)
     console.log("finished dropping tables");
   } catch (error) {
     console.error("error dropping tables");
@@ -18,19 +22,49 @@ async function dropTables() {
 }
 
 async function createTables() {
-  try{  
-    console.log("Starting to build tables...")
+  try {
+    console.log("starting build tables");
+    // create all tables, in the correct order
 
-    await client.query(`
-    CREATE TABLE mytablename (
+    await  client.query(`
+      CREATE TABLE users(
+        id  SERIAL PRIMARY KEY, 
+        username VARCHAR(255) UNIQUE NOT NULL, 
+        password VARCHAR(255) NOT NULL
+      );
+    `)
 
-    )`);
-    console.log("finished dropping tables");
-    }catch(error){
-      console.log("error building tables");
-      throw error;
-    }
-  // create all tables, in the correct order
+    await  client.query(`
+      CREATE TABLE activities(
+        id SERIAL PRIMARY KEY, 
+        name VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT NOT NULL
+      );
+    `)
+    await  client.query(`
+      CREATE TABLE routines(
+        id SERIAL PRIMARY KEY, 
+        "creatorId" INTEGER REFERENCES users(id),
+        "isPublic" BOOLEAN DEFAULT false,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        goal TEXT NOT NULL
+      );
+    `)
+    await  client.query(`
+      CREATE TABLE routine_activities(
+        id SERIAL PRIMARY KEY, 
+        "routineId" INTEGER REFERENCES routines(id),
+        "activityId" INTEGER REFERENCES activities(id),
+        duration INTEGER,
+        count INTEGER,
+        UNIQUE ("routineId", "activityId")
+        );
+    `)
+    console.log("finished building tables");
+  } catch (error) {
+    console.error("error building tables");
+    throw error;
+  }
 }
 
 /* 
@@ -129,74 +163,76 @@ async function createInitialRoutines() {
 }
 
 async function createInitialRoutineActivities() {
-  console.log("starting to create routine_activities...")
-  const [bicepRoutine, chestRoutine, legRoutine, cardioRoutine] =
-    await getRoutinesWithoutActivities()
-  const [bicep1, bicep2, chest1, chest2, leg1, leg2, leg3] =
-    await getAllActivities()
+  try{
+    console.log('starting to create routine_activities...');
+    const [bicepRoutine, chestRoutine, legRoutine, cardioRoutine] = await getRoutinesWithoutActivities();
+    const [bicep1, bicep2, chest1, chest2, leg1, leg2, leg3] = await getAllActivities();
 
-  const routineActivitiesToCreate = [
-    {
-      routineId: bicepRoutine.id,
-      activityId: bicep1.id,
-      count: 10,
-      duration: 5,
-    },
-    {
-      routineId: bicepRoutine.id,
-      activityId: bicep2.id,
-      count: 10,
-      duration: 8,
-    },
-    {
-      routineId: chestRoutine.id,
-      activityId: chest1.id,
-      count: 10,
-      duration: 8,
-    },
-    {
-      routineId: chestRoutine.id,
-      activityId: chest2.id,
-      count: 10,
-      duration: 7,
-    },
-    {
-      routineId: legRoutine.id,
-      activityId: leg1.id,
-      count: 10,
-      duration: 9,
-    },
-    {
-      routineId: legRoutine.id,
-      activityId: leg2.id,
-      count: 10,
-      duration: 10,
-    },
-    {
-      routineId: legRoutine.id,
-      activityId: leg3.id,
-      count: 10,
-      duration: 7,
-    },
-    {
-      routineId: cardioRoutine.id,
-      activityId: leg2.id,
-      count: 10,
-      duration: 10,
-    },
-    {
-      routineId: cardioRoutine.id,
-      activityId: leg3.id,
-      count: 10,
-      duration: 15,
-    },
-  ]
-  const routineActivities = await Promise.all(
-    routineActivitiesToCreate.map(addActivityToRoutine)
-  )
-  console.log("routine_activities created: ", routineActivities)
-  console.log("Finished creating routine_activities!")
+    const routineActivitiesToCreate = [
+      {
+        routineId: bicepRoutine.id,
+        activityId: bicep1.id,
+        count: 10,
+        duration: 5 
+      },
+      {
+        routineId: bicepRoutine.id,
+        activityId: bicep2.id,
+        count: 10,
+        duration: 8 
+      },
+      {
+        routineId: chestRoutine.id,
+        activityId: chest1.id,
+        count: 10,
+        duration: 8 
+      },
+      {
+        routineId: chestRoutine.id,
+        activityId: chest2.id,
+        count: 10,
+        duration: 7 
+      },
+      {
+        routineId: legRoutine.id,
+        activityId: leg1.id,
+        count: 10,
+        duration: 9 
+      },
+      {
+        routineId: legRoutine.id,
+        activityId: leg2.id,
+        count: 10,
+        duration: 10 
+      },
+      {
+        routineId: legRoutine.id,
+        activityId: leg3.id,
+        count: 10,
+        duration: 7 
+      },
+      {
+        routineId: cardioRoutine.id,
+        activityId: leg2.id,
+        count: 10,
+        duration: 10 
+      },
+      {
+        routineId: cardioRoutine.id,
+        activityId: leg3.id,
+        count: 10,
+        duration: 15 
+      },
+    ]
+    const routineActivities = await Promise.all(routineActivitiesToCreate.map(addActivityToRoutine));
+    console.log('routine_activities created: ', routineActivities)
+    console.log('Finished creating routine_activities!')
+  } catch (error) {
+    console.log("error routineactivites")
+    throw error;
+  }
 }
+
 
 async function rebuildDB() {
   try {

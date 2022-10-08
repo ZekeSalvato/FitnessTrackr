@@ -4,6 +4,15 @@ async function getRoutineById(id){
 }
 
 async function getRoutinesWithoutActivities(){
+  try {
+    const {rows} = await client.query(`
+    SELECT * FROM routines;
+    `);
+    return rows;
+  } catch (error) {
+    console.log('error getroutineswithoutactivities')
+    throw error
+  }
 }
 
 async function getAllRoutines() {
