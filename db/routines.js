@@ -7,11 +7,13 @@ async function getRoutinesWithoutActivities(){
   try {
     const {rows} = await client.query(`
     SELECT * FROM routines;
-    `);
+    `)
+    ;
     return rows;
-  } catch (error) {
+  } 
+  catch (error) {
     console.log('error getroutineswithoutactivities')
-    throw error
+  throw error
   }
 }
 
