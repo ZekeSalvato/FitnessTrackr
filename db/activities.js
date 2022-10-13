@@ -36,7 +36,31 @@ async function getActivityByName(name) {
 
 // select and return an array of all activities
 async function attachActivitiesToRoutines(routines) {
+  try {
+    if (!routines.length) {
+      return;
+    }
+    const result = await Promise.all(
+      routines.map(async routine => {
+        const { rows } = await client.query(
+          `
+        SELECT activities.*, routine_activities.id AS "routineActivityId", "routineId", duration, count
+        FROM activities
+        JOIN routine_activities ON activities.id=routine_activities."activityId"
+        WHERE routine_activities."routineId"=$1;`,
+          [routine.id]
+        );
+        routine.activities = rows;
+        return routine;
+      })
+    );
+    return result;
+  } catch (err) {
+    console.error('error during attachActivitiesToRoutines');
+    throw err;
+  }
 }
+
 
 // return the new activity
 async function createActivity({ name, description }) {
