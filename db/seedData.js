@@ -18,8 +18,7 @@ async function dropTables() {
       DROP TABLE IF EXISTS users cascade;
       DROP TABLE IF EXISTS activities cascade;
       DROP TABLE IF EXISTS routines cascade;
-      DROP TABLE IF EXISTS routineActivities cascade;
-    `);
+      DROP TABLE IF EXISTS routineActivities cascade;`);
     console.log("Finished dropping tables!")
   } catch (error) {
     console.log("Error dropping tables!");
