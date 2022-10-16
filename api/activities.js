@@ -12,32 +12,24 @@ const { requireUser } = require("./utils");
 router.use((req, res, next) => {
   next(); 
 });
-// GET /api/activities/:activityId/routines
+
 router.get('/:activityId/routines', async (req, res, next) => {
-  
    const { activityId } = req.params;
    try {
-     const routines  = await getPublicRoutinesByActivity({id:activityId})
-     console.log("TESTING ROUTINES", routines)
-   
+     const routines  = await getPublicRoutinesByActivity({ id: activityId });   
     if(routines.length) {
-     res.send(routines )
+     res.send(routines)
     } else {
       next({
         error:"ERROR",
         name: 'UnauthorizedError',
-        message: `Activity ${activityId } not found`
+        message: `Activity ${activityId } not found`,
       })
     }
-     
    } catch ({ name, message }) {
-     
        next({ name, message })
    } 
  });
-
-
-
 
 // GET /api/activities
 router.get("/", async (req, res, next) => {
@@ -85,18 +77,9 @@ router.post("/", requireUser, async (req, res, next) => {
 router.patch('/:activityId', requireUser, async (req, res, next) => {
   const { activityId } = req.params;
   const {name,description } = req.body;
-
-  
-
- 
- 
-
   try {
-    
       const activitiy = await getActivityByName(name);
-     
       if (activitiy) {
-       
         res.send({
         error:"Error",
         message: `An activity with name ${name} already exists`,
@@ -121,8 +104,5 @@ console.log(originalActivity)
     next({ name, message });
   }
 });
-
-
-
 
 module.exports = router;

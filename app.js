@@ -14,7 +14,7 @@ app.use(morgan('dev'));
 
 // Setup your Middleware and API Router here
 app.get('/', function (req, res) {
-    res.send({msg: 'Main Page!'})
+    res.send({msg: 'home'})
   })
 
 app.use('/api', router);
