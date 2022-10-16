@@ -25,17 +25,18 @@ async function getRoutinesWithoutActivities(){
   }
 }
 
+
 async function getAllRoutines() {
-    try {
-      const { rows: routines } = await client.query(`
-      SELECT routines.*, users.username AS "creatorName"
-      FROM routines
-      JOIN users ON routines."creatorId" = users.id `);
-      return attachActivitiesToRoutines(routines);
-    } catch (error) {
-      console.log("error during getAllRoutines func");
-      throw error;
-    }
+  try {
+    const { rows: routines } = await client.query(`
+    SELECT routines.*, users.username AS "creatorName"
+    FROM routines
+    JOIN users ON routines."creatorId" = users.id `);
+    return attachActivitiesToRoutines(routines);
+  } catch (error) {
+    console.log("error during getAllRoutines func");
+    throw error;
+  }
 }
 
 async function getAllRoutinesByUser({ username }) {
@@ -52,7 +53,6 @@ async function getAllRoutinesByUser({ username }) {
     throw error;
   }
 }
-
 
 async function getPublicRoutinesByUser({ username }) {
   try {
@@ -117,23 +117,23 @@ async function createRoutine({ creatorId, isPublic, name, goal }) {
 }
 
 async function updateRoutine({ id, ...fields }) {
-  try{
-  const setString = Object.keys(fields).map(
-    (key, index) => `"${key}"=$${index + 1}`
+  try {
+    const setString = Object.keys(fields).map(
+      (key, index) => `"${key}"=$${index + 1}`
     ).join(', ');
-  if (setString.length === 0) {
-    return;
-  }
-  const { rows: [user] } = await client.query(`
+    if (setString.length === 0) {
+      return;
+    }
+    const { rows: [user] } = await client.query(`
   UPDATE routines
   SET ${setString}
   WHERE id=${id}
   RETURNING *;`, Object.values(fields));
-  return user;
-} catch(error) {
-  console.log('error during updateRoutine')
-  throw error;
-}
+    return user;
+  } catch (error) {
+    console.log('error during updateRoutine');
+    throw error;
+  }
 }
 async function destroyRoutine(id) {
   try {
@@ -144,11 +144,10 @@ async function destroyRoutine(id) {
     DELETE FROM routines
     WHERE id=$1;`,[id]);
   } catch(error) {
-    console.log(error)
+    console.log(error);
     throw error;
   }
 }
-
 
 module.exports = {
   getRoutineById,
