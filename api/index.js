@@ -58,4 +58,12 @@ router.use('/activities', activitiesRouter);
 router.use('/routines', routinesRouter);
 router.use('/routine_activities', routineActivitiesRouter);
 
+router.get('*', function(req, res){
+    res.status(404);
+    res.send({
+        message: "404 page not found"
+    })
+})
+
+
 module.exports = router;
