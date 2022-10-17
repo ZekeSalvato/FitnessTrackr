@@ -1,91 +1,109 @@
 const client = require('./client')
 
-async function getRoutineActivityById(id) {
+async function getRoutineActivityById(id){
   try {
-    const { rows: [routineActivity] } = await client.query(`
+    const { rows: [routineActivity] } = await client.query(
+      `
       SELECT * FROM routine_activities
-      WHERE id=$1;`,[id]);
+      WHERE id=$1;
+    `,
+      [id]
+    );
+
     return routineActivity;
   } catch (error) {
-    console.error('error during getROutineActivityByID');
+    console.error('error getting routine activity by id')
     throw error;
   }
 }
 
-async function addActivityToRoutine({
-  routineId,
-  activityId,
-  count,
-  duration,
-}){
-    const { rows: [routineActivity] } = await client.query(`
-    INSERT INTO routine_activities ( "routineId", "activityId", count , duration)
-    VALUES($1, $2, $3, $4)
-    ON CONFLICT ("routineId", "activityId") DO NOTHING
-    RETURNING *;`, [ routineId, activityId, count, duration]);
+async function addActivityToRoutine({routineId, activityId, count, duration,}) {
+  try{
+    const {rows: [routineActivity]} = await client.query(`
+    INSERT INTO routine_activities("routineId", "activityId", count, duration)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *;
+    `, [routineId, activityId, count, duration]);
     return routineActivity;
-} 
+  } catch(error){
+    console.error("error adding activity to routine")
+    throw error
+  }
+}
 
-async function getRoutineActivitiesByRoutine({ id }) {
+async function getRoutineActivitiesByRoutine({id}) {
   try {
-    const { rows } = await client.query(`
+    const { rows } = await client.query(
+      `
       SELECT * FROM routine_activities
-      WHERE "routineId"=${id};`);
+      WHERE "routineId"=$1;
+    `,
+      [id]
+    );
+
     return rows;
   } catch (error) {
-    console.error('error during getRoutineActivitiesByRoutine');
+    console.error('error getting routine activities by id')
     throw error;
   }
 }
 
-async function updateRoutineActivity({ id, ...fields }) {
+async function updateRoutineActivity ({id, ...fields}) {
   try {
     const indexString = Object.keys(fields).map((key, index) => {
       return `"${key}"=$${index + 1}`;
     });
-    const { rows: [routineActivity]} = await client.query(`
+    const {
+      rows: [routineActivity],
+    } = await client.query(
+      `
       UPDATE routine_activities
       SET ${indexString}
       WHERE id=${id}
-      RETURNING *;`, Object.values(fields));
+      RETURNING *;`,
+      Object.values(fields)
+    );
     return routineActivity;
-  } catch (error) {
-    console.error('error during updateRoutineActivity');
-    throw error;
+  } catch (err) {
+    console.error("error updating routine activities");
+    throw err;
   }
 }
 
 async function destroyRoutineActivity(id) {
-  try {
-    const {rows: [routineActivity]} = await client.query(`
-        DELETE FROM routine_activities 
-        WHERE id = $1
-        RETURNING *;`, [id]);
-    return routineActivity;
-  } catch (error) {
-    console.log('error during destroyRoutineActivity')
-    throw error;
+  try{
+   const {rows: [routine_activity] } = await client.query(`
+    DELETE FROM routine_activities
+    WHERE id=$1
+    RETURNING *;
+    `, [id]);
+    return routine_activity
+
+    
+
+  } catch(error){
+    console.error("error destroying routine activity");
+    throw error
   }
 }
 
 async function canEditRoutineActivity(routineActivityId, userId) {
-  try {
-    const { rows: [routineActivity] } = await client.query(`
-      SELECT *
-      FROM routine_activities
-      WHERE id=$1;`, [routineActivityId]);
-  
-    const { rows: [routine] } = await client.query(`
-      SELECT *
-      FROM routines
-      WHERE id=$1;`, [routineActivity.routineId]);
-    if (userId === routine.creatorId) {
-      return true;
+  try{
+    
+    const {rows: [routine_activity] } = await client.query(`
+    SELECT routine_activities.*, routines.*  
+    FROM routine_activities
+    JOIN routines ON routine_activities."routineId"=routines.id
+    WHERE routine_activities.id=$1;
+    `, [routineActivityId])
+    
+    if(routine_activity.creatorId === userId){
+      return true
     }
-    return false;
-  } catch (error) {
-    console.log('error during canEditROutineActivity')
-    throw error;
+    
+  } catch(error){
+    console.error("error figuring out if routine can be edited")
+    throw error
   }
 }
 
